@@ -1,0 +1,41 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/jobkaptan",
+        "destination": "/jk.html"
+      },
+      {
+        "source": "/resourcekaptan",
+        "destination": "/rk.html"
+      },
+      {
+        "source": "/ ",
+        "destination": "/index.html"
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/jk.html",
+        "destination": "/jobkaptan",
+        "type": 301
+      },
+      {
+        "source": "/rk.html",
+        "destination": "/resourcekaptan",
+        "type": 301
+      },
+      {
+        "source": "/index.html",
+        "destination": "/ ",
+        "type": 301
+      }
+    ]
+  }
+}
