@@ -38,8 +38,10 @@ export const getBlogs = async (req, res) => {
 
     const query = { isPublished: true };
 
-    // Public API should not show soft-deleted blogs
-    query.isDeleted = false;
+    // Public/contributors should not see soft-deleted blogs
+    if (!req.user || req.user.role !== 'super_admin') {
+      query.isDeleted = { $ne: true }; // Show posts where isDeleted is false OR doesn't exist
+    }
 
     if (category) query.category = category;
     if (tag) query.tags = { $in: [tag] };
@@ -307,7 +309,7 @@ export const likeBlog = async (req, res) => {
 export const getMyBlogs = async (req, res) => {
   try {
     // Contributors should not see their soft-deleted blogs
-    const blogs = await Blog.find({ author: req.user.id, isDeleted: false })
+    const blogs = await Blog.find({ author: req.user.id, isDeleted: { $ne: true } })
       .sort({ createdAt: -1 });
 
     res.status(200).json({

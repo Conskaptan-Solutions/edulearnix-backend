@@ -13,7 +13,7 @@ export const getResources = async (req, res) => {
     // Public/contributors should not see soft-deleted resources
     // Super admin can see all resources (including soft-deleted)
     if (!req.user || req.user.role !== 'super_admin') {
-      query.isDeleted = false;
+      query.isDeleted = { $ne: true }; // Show posts where isDeleted is false OR doesn't exist
     }
 
     if (category) query.category = category;
@@ -335,7 +335,7 @@ export const incrementDownload = async (req, res) => {
 export const getMyResources = async (req, res) => {
   try {
     // Contributors should not see their soft-deleted resources
-    const resources = await Resource.find({ postedBy: req.user.id, isDeleted: false })
+    const resources = await Resource.find({ postedBy: req.user.id, isDeleted: { $ne: true } })
       .sort({ createdAt: -1 });
 
     res.status(200).json({

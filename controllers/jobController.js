@@ -20,7 +20,7 @@ export const getJobs = async (req, res) => {
     // Public/contributors should not see soft-deleted jobs
     // Super admin can see all jobs (including soft-deleted)
     if (!req.user || req.user.role !== 'super_admin') {
-      query.isDeleted = false;
+      query.isDeleted = { $ne: true }; // Show posts where isDeleted is false OR doesn't exist
     }
 
     if (category && category !== 'All') query.category = category;
@@ -358,7 +358,7 @@ export const getJobBySlug = async (req, res) => {
 export const getMyJobs = async (req, res) => {
   try {
     // Contributors should not see their soft-deleted jobs
-    const jobs = await Job.find({ postedBy: req.user.id, isDeleted: false })
+    const jobs = await Job.find({ postedBy: req.user.id, isDeleted: { $ne: true } })
       .sort({ createdAt: -1 });
 
     res.status(200).json({
