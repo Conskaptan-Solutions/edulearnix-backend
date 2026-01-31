@@ -44,7 +44,7 @@ export const getBlogs = async (req, res) => {
     }
 
     const blogs = await Blog.find(query)
-      .populate('author', 'name avatar role')
+      .populate('author', 'name email avatar role')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -73,7 +73,7 @@ export const getBlogs = async (req, res) => {
 export const getFeaturedBlogs = async (req, res) => {
   try {
     const blogs = await Blog.find({ isPublished: true, isFeatured: true })
-      .populate('author', 'name avatar role')
+      .populate('author', 'name email avatar role')
       .sort({ createdAt: -1 })
       .limit(5);
 
@@ -96,7 +96,7 @@ export const getFeaturedBlogs = async (req, res) => {
 export const getBlogBySlug = async (req, res) => {
   try {
     const blog = await Blog.findOne({ slug: req.params.slug, isPublished: true })
-      .populate('author', 'name avatar bio role');
+      .populate('author', 'name email avatar bio role');
 
     if (!blog) {
       return res.status(404).json({
