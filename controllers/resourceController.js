@@ -17,7 +17,7 @@ export const getResources = async (req, res) => {
     }
 
     const resources = await Resource.find(query)
-      .populate('postedBy', 'name avatar role')
+      .populate('postedBy', 'name email avatar role')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -59,7 +59,7 @@ export const getResourcesGrouped = async (req, res) => {
 
     for (const category of categories) {
       const resources = await Resource.find({ category })
-        .populate('postedBy', 'name avatar role')
+        .populate('postedBy', 'name email avatar role')
         .sort({ createdAt: -1 })
         .limit(8);
 
