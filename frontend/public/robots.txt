@@ -1,0 +1,30 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://edulearnix.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+
+# Allow important pages
+Allow: /jobs
+Allow: /jobs/*
+Allow: /resources
+Allow: /resources/*
+Allow: /courses
+Allow: /courses/*
+Allow: /blog
+Allow: /blog/*
+Allow: /mock-test
+Allow: /mock-test/*
+Allow: /digilearnix
+Allow: /digilearnix/*
+Allow: /about
+Allow: /contact
