@@ -351,20 +351,26 @@ const CourseDetails = () => {
             )}
 
             {/* Instructor Bio */}
-            {course.instructor?.bio && (
+            {course.instructor && (
               <div className="bg-white dark:bg-dark-200 rounded-2xl p-6 border border-gray-200 dark:border-dark-100">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">About the Instructor</h2>
                 <div className="flex items-start gap-4">
                   {course.instructor.avatar ? (
-                    <img src={course.instructor.avatar} alt={course.instructor.name} className="w-16 h-16 rounded-full object-cover" />
+                    <img 
+                      src={course.instructor.avatar} 
+                      alt={course.instructor.name} 
+                      className="w-16 h-16 rounded-full object-cover shadow-md" 
+                    />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-dark-100 flex items-center justify-center">
-                      <User className="w-8 h-8 text-gray-400" />
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                      <User className="w-8 h-8 text-white" />
                     </div>
                   )}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{course.instructor.name}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mt-2">{course.instructor.bio}</p>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">{course.instructor.name || 'Md Mijanur Molla'}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
+                      {course.instructor.bio || 'Expert instructor with experience in teaching technology and programming. Passionate about making complex concepts simple and accessible.'}
+                    </p>
                   </div>
                 </div>
               </div>

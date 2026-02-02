@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, FileText, Calendar, Eye, ThumbsUp, 
@@ -15,12 +15,17 @@ import { generateBreadcrumbSchema } from '../utils/seoSchemas';
 
 const Blog = () => {
   const [blogs, setBlogs] = useState([]);
+  const [displayedBlogs, setDisplayedBlogs] = useState([]);
   const [featuredBlogs, setFeaturedBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [expandedPosts, setExpandedPosts] = useState({});
   const [likedPosts, setLikedPosts] = useState({});
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef(null);
 
   const categories = [
     'All',
@@ -40,7 +45,7 @@ const Blog = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params = { limit: 1000 }; // Get all blogs
       if (selectedCategory !== 'All') {
         params.category = selectedCategory;
       }
@@ -49,7 +54,11 @@ const Blog = () => {
       }
       const response = await blogService.getAll(params);
       if (response.data.success) {
-        setBlogs(response.data.data || []);
+        const allBlogs = response.data.data || [];
+        setBlogs(allBlogs);
+        setDisplayedBlogs(allBlogs.slice(0, 5));
+        setPage(1);
+        setHasMore(allBlogs.length > 5);
       }
     } catch (error) {
       console.error('Failed to fetch blogs:', error);
@@ -69,6 +78,49 @@ const Blog = () => {
     }
   };
 
+  const loadMoreBlogs = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    setTimeout(() => {
+      const nextPage = page + 1;
+      const startIndex = page * 5;
+      const endIndex = startIndex + 5;
+      const newBlogs = blogs.slice(startIndex, endIndex);
+      
+      if (newBlogs.length > 0) {
+        setDisplayedBlogs(prev => [...prev, ...newBlogs]);
+        setPage(nextPage);
+        setHasMore(endIndex < blogs.length);
+      } else {
+        setHasMore(false);
+      }
+      setLoadingMore(false);
+    }, 800);
+  }, [blogs, page, loadingMore, hasMore]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMoreBlogs();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [loadMoreBlogs, hasMore, loadingMore]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     fetchBlogs();
@@ -79,6 +131,9 @@ const Blog = () => {
     try {
       await blogService.like(id);
       setBlogs(blogs.map(b => 
+        b._id === id ? { ...b, likes: (b.likes || 0) + 1 } : b
+      ));
+      setDisplayedBlogs(displayedBlogs.map(b => 
         b._id === id ? { ...b, likes: (b.likes || 0) + 1 } : b
       ));
       setLikedPosts({ ...likedPosts, [id]: true });
@@ -226,7 +281,7 @@ const Blog = () => {
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
               </div>
-            ) : blogs.length === 0 ? (
+            ) : displayedBlogs.length === 0 ? (
               <div className="bg-white dark:bg-dark-200 rounded-xl p-12 text-center">
                 <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No posts found</h3>
@@ -235,7 +290,7 @@ const Blog = () => {
                 </p>
               </div>
             ) : (
-              blogs.map((blog) => (
+              displayedBlogs.map((blog) => (
                 <article key={blog._id} className="bg-white dark:bg-dark-200 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
                   {/* Post Header */}
                   <div className="p-4 flex items-start justify-between">
@@ -405,12 +460,23 @@ const Blog = () => {
               ))
             )}
 
-            {/* Load More */}
-            {blogs.length >= 10 && (
-              <div className="text-center py-4">
-                <button className="px-6 py-3 bg-white dark:bg-dark-200 text-gray-700 dark:text-gray-300 rounded-xl font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-100 transition-colors">
-                  Load More Posts
-                </button>
+            {/* Infinite Scroll Loader */}
+            {hasMore && (
+              <div ref={observerTarget} className="flex flex-col items-center justify-center py-8 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                  <span className="text-gray-600 dark:text-gray-400 font-medium">Loading more posts...</span>
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                </div>
+              </div>
+            )}
+            {!hasMore && displayedBlogs.length > 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">You've reached the end! 🎉</p>
               </div>
             )}
           </div>

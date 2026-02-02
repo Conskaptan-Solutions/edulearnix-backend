@@ -105,6 +105,22 @@ const Courses = () => {
     return colors[category] || 'bg-gray-100 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300';
   };
 
+  const getCategoryGradient = (category) => {
+    const gradients = {
+      'Web Development': 'from-blue-500 to-blue-600',
+      'Mobile Development': 'from-purple-500 to-purple-600',
+      'Data Science': 'from-green-500 to-green-600',
+      'Machine Learning': 'from-orange-500 to-orange-600',
+      'DevOps': 'from-cyan-500 to-cyan-600',
+      'Cybersecurity': 'from-red-500 to-red-600',
+      'Cloud Computing': 'from-sky-500 to-sky-600',
+      'UI/UX Design': 'from-pink-500 to-pink-600',
+      'DSA': 'from-indigo-500 to-indigo-600',
+      'Interview Prep': 'from-teal-500 to-teal-600',
+    };
+    return gradients[category] || 'from-gray-500 to-gray-600';
+  };
+
   const breadcrumbs = [
     { name: 'Home', path: '/' },
     { name: 'Courses', path: '/courses' }
@@ -307,20 +323,27 @@ const Courses = () => {
               >
                 {/* Thumbnail */}
                 <div className="relative h-48 overflow-hidden">
-                  {course.thumbnail ? (
+                  {/* Colored fallback background with title */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(course.category)} flex items-center justify-center p-4`}>
+                    <h3 className="text-white font-bold text-base text-center leading-tight line-clamp-4">
+                      {course.title}
+                    </h3>
+                  </div>
+                  
+                  {/* Try to load thumbnail image on top */}
+                  {course.thumbnail && course.thumbnail.startsWith('http') && (
                     <img
                       src={course.thumbnail}
                       alt={course.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="absolute inset-0 w-full h-full object-cover z-10 group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                      <GraduationCap className="w-16 h-16 text-white/50" />
-                    </div>
                   )}
                   
                   {/* Badges */}
-                  <div className="absolute top-3 left-3 flex gap-2">
+                  <div className="absolute top-3 left-3 flex gap-2 z-20">
                     {course.isFree && (
                       <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
                         FREE
@@ -335,7 +358,7 @@ const Courses = () => {
 
                   {/* Play Button Overlay */}
                   {course.previewVideo && (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 z-20">
                       <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
                         <Play className="w-8 h-8 text-blue-600 ml-1" />
                       </div>
@@ -415,13 +438,21 @@ const Courses = () => {
                   className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white cursor-pointer hover:shadow-xl transition-shadow"
                 >
                   <div className="flex gap-4">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
-                      {course.thumbnail ? (
-                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                          <GraduationCap className="w-10 h-10" />
-                        </div>
+                    <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 relative">
+                      {/* Fallback with title */}
+                      <div className="absolute inset-0 bg-white/20 flex items-center justify-center p-2">
+                        <span className="text-white text-xs font-bold text-center line-clamp-3">{course.title}</span>
+                      </div>
+                      {/* Try to load thumbnail */}
+                      {course.thumbnail && course.thumbnail.startsWith('http') && (
+                        <img 
+                          src={course.thumbnail} 
+                          alt={course.title} 
+                          className="absolute inset-0 w-full h-full object-cover z-10" 
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
                       )}
                     </div>
                     <div>

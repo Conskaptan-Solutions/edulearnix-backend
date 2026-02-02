@@ -26,6 +26,17 @@ const Resources = () => {
     'Hardware Project',
   ];
 
+  // Category colors for fallback thumbnails
+  const categoryColors = {
+    'Software Notes': 'from-blue-500 to-blue-600',
+    'Interview Notes': 'from-purple-500 to-purple-600',
+    'Tools & Technology': 'from-green-500 to-green-600',
+    'Trending Technology': 'from-orange-500 to-orange-600',
+    'Video Resources': 'from-red-500 to-red-600',
+    'Software Project': 'from-indigo-500 to-indigo-600',
+    'Hardware Project': 'from-teal-500 to-teal-600',
+  };
+
   useEffect(() => {
     fetchResources();
   }, [selectedCategory]);
@@ -192,33 +203,44 @@ const Resources = () => {
                 className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-black/20 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 group block"
               >
                 {/* Thumbnail */}
-                <div className="relative aspect-video bg-gray-100 dark:bg-dark-200">
-                  {resource.isVideo && resource.link ? (
+                <div className="relative aspect-video overflow-hidden">
+                  {/* Always show colored background as base */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${categoryColors[resource.category] || 'from-gray-500 to-gray-600'} flex items-center justify-center p-6`}>
+                    <h3 className="text-white font-bold text-lg text-center leading-tight line-clamp-4">
+                      {resource.title}
+                    </h3>
+                  </div>
+                  
+                  {/* Try to load image on top if available */}
+                  {resource.isVideo && resource.link && getYouTubeId(resource.link) ? (
                     <img
                       src={`https://img.youtube.com/vi/${getYouTubeId(resource.link)}/maxresdefault.jpg`}
                       alt={resource.title}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover z-10"
                       onError={(e) => {
-                        e.target.src = resource.thumbnail || '/images/placeholder.png';
+                        e.target.style.display = 'none';
                       }}
                     />
-                  ) : (
+                  ) : resource.thumbnail && resource.thumbnail.startsWith('http') ? (
                     <img
-                      src={resource.thumbnail || '/images/placeholder.png'}
+                      src={resource.thumbnail}
                       alt={resource.title}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover z-10"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
-                  )}
+                  ) : null}
                   
                   {resource.isVideo && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition-colors">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition-colors z-20">
                       <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
                         <Play className="w-5 h-5 text-white fill-current ml-0.5" />
                       </div>
                     </div>
                   )}
 
-                  <span className="absolute top-2 left-2 px-2.5 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg shadow-md">
+                  <span className="absolute top-2 left-2 px-2.5 py-1 bg-black/60 backdrop-blur-sm text-white text-xs font-medium rounded-lg shadow-md z-30">
                     {resource.category}
                   </span>
                 </div>
